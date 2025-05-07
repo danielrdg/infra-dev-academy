@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: roteamento-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./docker-init:/docker-entrypoint-initdb.d:ro
+
+  backend:
+    build:
+      context: ./roteamento-ia-backend
+      dockerfile: Dockerfile
+    container_name: roteamento-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: "mongodb://mongo:27017/roteamento_ia"
+    volumes:
+      - ./roteamento-ia-backend:/app
+
+  frontend:
+    build:
+      context: ./frontend-dev-academy
+      dockerfile: Dockerfile
+    container_name: roteamento-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend-dev-academy:/app
+
+volumes:
+  mongo_data:
